@@ -18,7 +18,7 @@ name = "duct tape lines on glass"
 ser = serial.Serial(port='COM4', baudrate=250000, timeout=10)
 time.sleep(0.5)
 ser.flush()
-root =  Tkinter.Tk()
+root = Tkinter.Tk()
 root.bind('<Escape>', lambda e: root.destroy())
 canv = Tkinter.Canvas(root, width=width, height=height, bg="black")
 canv.pack()
