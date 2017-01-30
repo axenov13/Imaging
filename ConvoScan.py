@@ -158,8 +158,8 @@ class ConvoScan:
         # END OF GMATRIX INIZIALIZATION
 
         # SOLVING
-        f = linalg.solve(Gmatrix, convcolumn)
-        f = array(f).reshape((len(hmatrix) + len(cmatrix) - 1, len(hmatrix[0]) + len(cmatrix[0]) - 1))
+        f = np.linalg.solve(Gmatrix, convcolumn)
+        f = np.array(f).reshape((len(hmatrix) + len(cmatrix) - 1, len(hmatrix[0]) + len(cmatrix[0]) - 1))
 
         # END
 
@@ -167,10 +167,12 @@ class ConvoScan:
         return self.imatrix
 
     def create_cmatrix_image(self):
-        self.cmatrix_image = Image.new("L", (len(self.cmatrix), len(self.cmatrix[0])), "black")
+        self.cmatrix_image = Image.new("L", (len(self.cmatrix[0]), len(self.cmatrix)), "black")
         for i in range(len(self.cmatrix)):
             for j in range(len(self.cmatrix[0])):
-                self.cmatrix_image.putpixel((i, j), int(self.cmatrix[i][j]))
+                self.cmatrix_image.putpixel((j, i), int(self.cmatrix[i][j]))
+                print int(self.cmatrix[i][j]),
+            print
         return self.cmatrix_image
 
     def create_imatrix_image(self):
@@ -202,27 +204,31 @@ class ConvoScan:
         return float(summ) / iterations
 
     def convoscan(self, canv, ser, latency=0.05):
-        self.create_cmatrix_image()
-        img = canv.create_image((0, 0), image=ImageTk.PhotoImage(self.get_cmatrix_image()))
-        self.convolution = np.array()
-        for i in xrange(canv.winfo_width() / self.x_blocksize + 1):
-            conv1 = np.array()
-            for j in xrange(canv.winfo_height() / self.y_blocksize + 1):
+        img = canv.create_image((0, 0), image=ImageTk.PhotoImage(image=self.create_cmatrix_image()))
+        canv.update()
+        self.convolution = []
+        for i in xrange(canv.winfo_height() / self.x_blocksize + 1):
+            conv1 = []
+            for j in xrange(canv.winfo_width() / self.y_blocksize + 1):
                 conv1.append(self.get_signal(ser))
-                canv.move(img, 0, self.y_blocksize)
+                canv.move(img, self.x_blocksize, 0)
                 canv.update()
                 time.sleep(latency)
-            self.convolution = np.vstack((self.convolution, conv1))
-            canv.move(img, self.x_blocksize, -(canv.winfo_height() / self.y_blocksize + 1) * self.y_blocksize)
+            self.convolution.append(conv1)
+            canv.move(img, -(canv.winfo_width() / self.x_blocksize + 1) * self.x_blocksize, self.y_blocksize)
             canv.update()
             time.sleep(latency)
         self.init_imatrix()
 
     def normalize_imatrix(self, min_norm=1, max_norm=99):
+        self.imatrix = np.array(self.imatrix)
         max = np.amax(self.imatrix)
         min = np.amin(self.imatrix)
+        if max - min == 0:
+            max = 1
+            min = 0
         k = (max_norm - min_norm)/(max - min)
         b = max_norm - k*max
-        list = round(k*self.imatrix + b)
+        list = np.around(k*self.imatrix + b)
         return self.imatrix
 

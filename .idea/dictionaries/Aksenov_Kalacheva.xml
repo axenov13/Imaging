@@ -3,7 +3,11 @@
     <words>
       <w>blocksize</w>
       <w>canv</w>
+      <w>conv</w>
+      <w>convo</w>
+      <w>convoscan</w>
       <w>imagepath</w>
+      <w>imatrix</w>
       <w>imtk</w>
       <w>kalacheva</w>
       <w>scantype</w>
