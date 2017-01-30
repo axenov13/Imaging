@@ -8,15 +8,15 @@ import time
 class FileManager:
     def __init__(self):
         self.date = dt.datetime.now().date()
-        self.directory = "C:\Users\USERNAME????\Desktop\LabWorks\\" + str(self.date) #USERNAME?????
+        self.directory = "C:\Users\Aksenov_Kalacheva\PycharmProjects\Imaging\Files\\" + str(self.date)
 
     def save_matrix(self, matrix, name="IMAGE", scantype="undefined", x_blocksize=1, y_blocksize='E'):
         if y_blocksize == 'E':
             y_blocksize = x_blocksize
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        filename = '{0}{1}_{2} xbs= {3} ybs= {4} 1.txt'.format(self.directory, name, scantype, str(x_blocksize),
-                                                               str(y_blocksize))
+        filename = "{0}\{1}_{2} xbs= {3} ybs= {4} #1.txt".format(self.directory, name, scantype, str(x_blocksize),
+                                                                 str(y_blocksize))
         i = 1
         file_obj = None
         while i < 10000:
@@ -27,6 +27,7 @@ class FileManager:
                 filename += '.txt'
             else:
                 file_obj = open(filename, 'w')
+                break
             if i > 9000:
                 print "YOU ARE INSANE"
                 time.sleep(30)
@@ -35,26 +36,27 @@ class FileManager:
                 file_obj.write(str(matrix[i][j])+'\t')
             file_obj.write('\n')
         file_obj.close()
+        return filename
 
     def save_image(self, image, name="IMAGE", scantype="undefined", x_blocksize=1, y_blocksize='E'):
         if y_blocksize == 'E':
             y_blocksize = x_blocksize
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        filename = '{0}{1}_{2} xbs= {3} ybs= {4} 1.bmp'.format(self.directory, name, scantype, str(x_blocksize),
-                                                               str(y_blocksize))
+        filename = '{0}\{1}_{2} xbs= {3} ybs= {4} #1.bmp'.format(self.directory, name, scantype, str(x_blocksize),
+                                                                 str(y_blocksize))
         i = 1
-        file_obj = None
         while i < 10000:
             if os.path.isfile(filename):
                 i += 1
                 filename = filename[:len(filename) - 5]
                 filename += str(i)
-                filename += '.txt'
+                filename += '.bmp'
             else:
-                file_obj = image.save(filename)
+                image.save(filename)
+                break
             if i > 9000:
                 print "YOU ARE INSANE"
                 time.sleep(30)
-        return 0
+        return filename
 

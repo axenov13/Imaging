@@ -44,6 +44,10 @@ class SimpleScan:
         for i in xrange(canv.winfo_height()/height + 1):
             for j in xrange(canv.winfo_width()/width + 1):
                 n = self.list[i][j]
+                if n < 0:
+                    n = 0
+                if n > 99:
+                    n = 99
                 col = 'gray' + str(int(round(n)))
                 canv.create_rectangle(j*width, i*height, j*width + width, i*height + height, fill=col)
         canv.update()
@@ -53,6 +57,9 @@ class SimpleScan:
         self.list = np.array(self.list)
         max = np.amax(self.list)
         min = np.amin(self.list)
+        if (max-min == 0):
+            max = 1
+            min = 0
         k = (max_norm - min_norm)/(max - min)
         b = max_norm - k*max
         self.list = np.around(k*self.list + b)
