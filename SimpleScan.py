@@ -23,9 +23,9 @@ class SimpleScan:
         return float(summ)/self.iterations
 
     def scan_brick(self, ser, canv, latency=0.05):
-        self.list = np.array()
+        self.list = []
         for i in xrange(canv.winfo_height()/self.brick + 1):
-            list1 = np.array()
+            list1 = []
             for j in xrange(canv.winfo_width()/self.brick + 1):
                 rect = canv.create_rectangle(j*self.brick, i*self.brick, j*self.brick + self.brick,
                                                   i*self.brick + self.brick, fill="white")
@@ -34,26 +34,27 @@ class SimpleScan:
                 signal = self.get_signal(ser)
                 canv.delete(rect)
                 list1.append(signal)
-            self.list = np.vstack((self.list, list1))
+            self.list.append(list1)
             canv.update()
         return list
 
-    def out_brick(self):
+    def out_brick(self, canv):
         width = self.brick
         height = self.brick
-        for i in xrange(self.canv.winfo_height()/height + 1):
-            for j in xrange(self.canv.winfo_width()/width + 1):
+        for i in xrange(canv.winfo_height()/height + 1):
+            for j in xrange(canv.winfo_width()/width + 1):
                 n = self.list[i][j]
                 col = 'gray' + str(int(round(n)))
-                self.canv.create_rectangle(j*width, i*height, j*width + width, i*height + height, fill=col)
-        self.canv.update()
+                canv.create_rectangle(j*width, i*height, j*width + width, i*height + height, fill=col)
+        canv.update()
         return 0
 
     def normalize_brick(self, min_norm=1, max_norm=99):
+        self.list = np.array(self.list)
         max = np.amax(self.list)
         min = np.amin(self.list)
         k = (max_norm - min_norm)/(max - min)
         b = max_norm - k*max
-        list = round(k*self.list + b)
+        self.list = np.around(k*self.list + b)
         return self.list
 
