@@ -7,9 +7,9 @@ import ImageMaster
 import FileManager
 
 
-width = 700
-height = 500
-brick = 100
+width = 400
+height = 400
+brick = 50
 scantype = "convo"
 name = "duct tape lines on glass"
 
@@ -28,6 +28,10 @@ _s = 0
 def start(self):
     global _s
     _s = 1
+def startwithoutsaving(self):
+    global _s
+    _s = 2
+root.bind('<c>', startwithoutsaving)
 root.bind('<s>', start)
 while _s == 0:
     time.sleep(0.2)
@@ -42,16 +46,17 @@ if scantype == "simple":
     result = SS.list
 if scantype == "convo":
     CS = ConvoScan.ConvoScan(brick)
-    CS.init_gauss_cmatrix(5)
-    CS.convoscan(canv, ser, latency=0.1)
+    CS.init_gauss_cmatrix(1)
+    CS.convoscan(canv, ser, latency=0.02)
     CS.normalize_imatrix(1, 99)
     result = CS.imatrix
-FM.save_matrix(result, name, scantype, brick)
 im = ImageMaster.create_image(result, brick)
-FM.save_image(im, name, scantype, brick)
 imtk = ImageMaster.create_tk_image(result, brick)
 canv.create_image((canv.winfo_width()/2, canv.winfo_height()/2), image=imtk)
 canv.update()
+if _s == 1:
+    FM.save_matrix(result, name, scantype, brick)
+    FM.save_image(im, name, scantype, brick)
 
 time.clock()
 while True:

@@ -3,9 +3,14 @@
     <words>
       <w>blocksize</w>
       <w>canv</w>
+      <w>cmatrix</w>
       <w>conv</w>
+      <w>convcolumn</w>
       <w>convo</w>
       <w>convoscan</w>
+      <w>firstrow</w>
+      <w>gmatrix</w>
+      <w>hmatrix</w>
       <w>imagepath</w>
       <w>imatrix</w>
       <w>imtk</w>

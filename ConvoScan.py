@@ -1,7 +1,7 @@
 from serial import Serial
 import time
 from Tkinter import *
-from math import exp, log
+from math import exp
 from PIL import Image
 from PIL import ImageTk
 from __builtin__ import round
@@ -9,7 +9,7 @@ import numpy as np
 
 
 def gauss(r, sigma):
-    return 15 * exp(-r * r / (sigma * sigma))
+    return 15 * exp(-float(r*r)/float(sigma * sigma))
 
 
 class ConvoScan:
@@ -70,18 +70,18 @@ class ConvoScan:
         self.cmatrix_type = 'gauss'
         if sigma2 == 'E':
             sigma2 = sigma1
-
-        width = int(round(2 * sigma1 * log(15)))
-        height = int(round(2 * sigma2 * log(15)))
-
-        i0 = int(round(width / 2))
-        j0 = int(round((height / 2)))
-        i = 0
-        j = 0
-        for i in range(width):
+        width = 0
+        while round(gauss(width, sigma1)) > 0:
+            width += 1
+        height = 0
+        while round(gauss(height, sigma2)) > 0:
+            height += 1
+        width += 1
+        height += 1
+        for i in range(2*height):
             self.cmatrix.append([])
-            for j in range(height):
-                self.cmatrix[i].append(round(gauss(float(i - i0), float(sigma1)) * gauss(float(j - j0), float(sigma2))))
+            for j in range(2*width):
+                self.cmatrix[i].append(round(gauss(i - height, sigma1)) * round(gauss(j - width, sigma2)))
         return self.cmatrix
 
     def init_block_cmatrix(self, x, y):
@@ -105,60 +105,61 @@ class ConvoScan:
     def init_imatrix(self):
         self.imatrix = []
         hmatrix = self.convolution
-        cmatrix = self.cmatrix
+        # cmatrix inizialization
+        cmatrix = []
 
         # H COLUMN INIZIALIZATION
         convcolumn = []
         for i in xrange(len(hmatrix)):
             for j in xrange(len(hmatrix[i])):
                 convcolumn.append(hmatrix[i][j])
-            for j in xrange(len(cmatrix[0]) - 1):
+            for k in xrange(len(cmatrix[0]) - 1):
                 convcolumn.append(0.)
         for i in xrange((len(cmatrix) - 1) * (len(hmatrix[0]) + len(cmatrix[0]) - 1)):
             convcolumn.append(0.)
 
         # END OF H COLUMN INIZIALIZATION
 
-        ##### GMATRIX INIZIALIZATION
+        # GMATRIX INIZIALIZATION
         firstrow = []
-        for j in xrange(len(cmatrix)):
-            for i in xrange(len(cmatrix[j])):
-                firstrow.append(cmatrix[j][i])
-            for i in xrange(len(hmatrix[0]) - 1):
+        for i in xrange(len(cmatrix)):
+            for j in xrange(len(cmatrix[j])):
+                    firstrow.append(cmatrix[i][j])
+            for l in xrange(len(hmatrix[0]) - 1):
                 firstrow.append(0.)
         l = len(firstrow)
         for j in xrange(len(convcolumn) - l):
             firstrow.append(0.)
 
-        Gmatrix = []
+        gmatrix = []
         k = 0
-        for i in xrange(len(hmatrix)):
-            for j in xrange(len(hmatrix[0])):
-                Gmatrix.append(list(firstrow))
+        for i in xrange(len(convcolumn)):
+        #    for j in xrange(len(hmatrix[0])):
+                gmatrix.append(list(firstrow))
                 firstrow.reverse()
                 firstrow.pop(0)
                 firstrow.append(0.)
                 firstrow.reverse()
                 k += 1
-            for j in xrange(len(cmatrix[0]) - 1):
-                firstrow.reverse()
-                firstrow.pop(0)
-                firstrow.append(0.)
-                firstrow.reverse()
-                marker = (len(convcolumn) - 1) * [0.]
-                marker.insert(k, 1.)
-                k += 1
-                Gmatrix.append(marker)
-        for i in xrange((len(cmatrix) - 1) * (len(hmatrix[0]) + len(cmatrix[0]) - 1)):
-            marker = (len(convcolumn) - 1) * [0.]
-            marker.insert(k, 1.)
-            k += 1
-            Gmatrix.append(marker)
+            #for j in xrange(len(cmatrix[0]) - 1):
+            #    firstrow.reverse()
+            #    firstrow.pop(0)
+            #    firstrow.append(0.)
+            #    firstrow.reverse()
+            #    marker = (len(convcolumn) - 1) * [0.]
+            #    marker.insert(k, 1.)
+            #    k += 1
+             #   gmatrix.append(marker)
+        #for i in xrange((len(cmatrix) - 1) * (len(hmatrix[0]) + len(cmatrix[0]) - 1)):
+        #    marker = (len(convcolumn) - 1) * [0.]
+        #   marker.insert(k, 1.)
+        #    k += 1
+        #    gmatrix.append(marker)
 
         # END OF GMATRIX INIZIALIZATION
 
         # SOLVING
-        f = np.linalg.solve(Gmatrix, convcolumn)
+        f = np.linalg.solve(gmatrix, convcolumn)
         f = np.array(f).reshape((len(hmatrix) + len(cmatrix) - 1, len(hmatrix[0]) + len(cmatrix[0]) - 1))
 
         # END
@@ -167,12 +168,13 @@ class ConvoScan:
         return self.imatrix
 
     def create_cmatrix_image(self):
-        self.cmatrix_image = Image.new("L", (len(self.cmatrix[0]), len(self.cmatrix)), "black")
-        for i in range(len(self.cmatrix)):
-            for j in range(len(self.cmatrix[0])):
-                self.cmatrix_image.putpixel((j, i), int(self.cmatrix[i][j]))
-                print int(self.cmatrix[i][j]),
-            print
+        self.cmatrix_image = Image.new("L", (len(self.cmatrix[0])*self.x_blocksize,
+                                             len(self.cmatrix)*self.y_blocksize), "black")
+        for i in xrange(len(self.cmatrix)):
+            for j in xrange(len(self.cmatrix[0])):
+                for k in xrange(self.x_blocksize):
+                    for l in xrange(self.y_blocksize):
+                        self.cmatrix_image.putpixel((j+k, i+l), int(self.cmatrix[i][j]))
         return self.cmatrix_image
 
     def create_imatrix_image(self):
@@ -195,7 +197,6 @@ class ConvoScan:
         summ = 0
         for i in xrange(iterations):
             ser.write('w')
-            time.sleep(0.005)
             line = ser.readline()
             if not line.strip():
                 i -= 1
@@ -204,18 +205,22 @@ class ConvoScan:
         return float(summ) / iterations
 
     def convoscan(self, canv, ser, latency=0.05):
-        img = canv.create_image((0, 0), image=ImageTk.PhotoImage(image=self.create_cmatrix_image()))
+        i = self.create_cmatrix_image()
+        itk = ImageTk.PhotoImage(i)
+        img = canv.create_image((0, 0), image=itk)
         canv.update()
+        time.sleep(latency)
         self.convolution = []
-        for i in xrange(canv.winfo_height() / self.x_blocksize + 1):
+        for i in xrange(canv.winfo_height() / self.y_blocksize + 1):
             conv1 = []
-            for j in xrange(canv.winfo_width() / self.y_blocksize + 1):
+            for j in xrange(canv.winfo_width() / self.x_blocksize + 1):
                 conv1.append(self.get_signal(ser))
                 canv.move(img, self.x_blocksize, 0)
                 canv.update()
                 time.sleep(latency)
             self.convolution.append(conv1)
             canv.move(img, -(canv.winfo_width() / self.x_blocksize + 1) * self.x_blocksize, self.y_blocksize)
+            print i, j
             canv.update()
             time.sleep(latency)
         self.init_imatrix()
@@ -229,6 +234,6 @@ class ConvoScan:
             min = 0
         k = (max_norm - min_norm)/(max - min)
         b = max_norm - k*max
-        list = np.around(k*self.imatrix + b)
+        self.imatrix = np.around(k*self.imatrix + b)
         return self.imatrix
 

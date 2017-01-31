@@ -14,7 +14,9 @@ def create_image(matrix, x_blocksize=1, y_blocksize='E'):
     return im
 
 
-def create_tk_image(matrix, blocksize=1):
-    im = create_image(matrix, blocksize)
+def create_tk_image(matrix, x_blocksize=1, y_blocksize='E'):
+    if y_blocksize == 'E':
+        y_blocksize = x_blocksize
+    im = create_image(matrix, x_blocksize, y_blocksize)
     imtk = ImageTk.PhotoImage(im)
     return imtk
